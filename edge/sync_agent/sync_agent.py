@@ -130,7 +130,7 @@ def push_to_cloud(payload_gz: bytes) -> bool:
         headers = {
             "Content-Encoding": "gzip",
             "Content-Type": "application/json",
-            "Authorization": f"******",
+            "Authorization": "Bearer " + CLOUD_HUB_TOKEN,
             "X-Site-Id": SITE_ID,
         }
         resp = requests.post(
@@ -175,7 +175,7 @@ def try_pull_model_update() -> None:
         url = CLOUD_HUB_URL.replace("/ingest", f"/model/{SITE_ID}/latest")
         resp = requests.get(
             url,
-            headers={"Authorization": f"******"},
+            headers={"Authorization": "Bearer " + CLOUD_HUB_TOKEN},
             timeout=15,
         )
         if resp.status_code == 200:

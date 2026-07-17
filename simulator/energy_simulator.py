@@ -118,8 +118,8 @@ def main() -> None:
         baseline_kw = ecfg["baseline_load_kw"]
         net_kw = solar_kw - baseline_kw   # positive → surplus for BESS
 
-        # BESS charge/discharge decision
-        dt_hours = (interval * SIMULATION_SPEEDUP) / 3600.0
+        # BESS charge/discharge decision — clamp dt_hours to avoid division by zero
+        dt_hours = max((interval * SIMULATION_SPEEDUP) / 3600.0, 1e-9)
         max_charge = bcfg["max_charge_rate_kw"]
         max_discharge = bcfg["max_discharge_rate_kw"]
         efficiency = bcfg["round_trip_efficiency"]
@@ -130,7 +130,7 @@ def main() -> None:
         if net_kw > 0:
             # Surplus — charge BESS
             charge_kw = min(net_kw, max_charge)
-            charge_kw = min(charge_kw, (max_soc - bess_soc) * capacity / dt_hours) if dt_hours > 0 else charge_kw
+            charge_kw = min(charge_kw, (max_soc - bess_soc) * capacity / dt_hours)
             bess_kw = max(0.0, charge_kw)
             bess_soc = min(max_soc, bess_soc + bess_kw * efficiency * dt_hours / capacity)
             grid_kw = net_kw - bess_kw  # residual exported
@@ -138,7 +138,7 @@ def main() -> None:
             # Deficit — discharge BESS
             deficit = abs(net_kw)
             discharge_kw = min(deficit, max_discharge)
-            discharge_kw = min(discharge_kw, (bess_soc - min_soc) * capacity / dt_hours) if dt_hours > 0 else discharge_kw
+            discharge_kw = min(discharge_kw, (bess_soc - min_soc) * capacity / dt_hours)
             discharge_kw = max(0.0, discharge_kw)
             bess_kw = -discharge_kw
             bess_soc = max(min_soc, bess_soc - discharge_kw * dt_hours / capacity)

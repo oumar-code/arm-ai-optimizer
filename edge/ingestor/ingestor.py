@@ -109,8 +109,6 @@ def flush_features(write_api: Any) -> None:
             for feat_name, feat_val in feats.items():
                 point = point.field(f"{field}__{feat_name}", feat_val)
                 feature_count += 1
-            # Also write the raw mean as a convenience
-            point = point.field(f"{field}_mean", feats.get("mean", 0.0))
 
         if feature_count > 0:
             write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=point)

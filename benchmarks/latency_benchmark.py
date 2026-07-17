@@ -75,7 +75,8 @@ def benchmark_isolation_forest(model_dir: Path, n_runs: int) -> List[float]:
         clf.predict(dummy)
         latencies.append((time.perf_counter() - t0) * 1000)
 
-    return latencies[10:]   # drop first 10 warm-up runs
+    warmup = min(10, len(latencies) // 2)
+    return latencies[warmup:]   # drop warm-up runs
 
 
 def benchmark_onnx(model_dir: Path, n_runs: int, model_name: str) -> List[float]:
@@ -99,7 +100,8 @@ def benchmark_onnx(model_dir: Path, n_runs: int, model_name: str) -> List[float]
         sess.run(None, {"features": dummy_seq})
         latencies.append((time.perf_counter() - t0) * 1000)
 
-    return latencies[10:]
+    warmup = min(10, len(latencies) // 2)
+    return latencies[warmup:]
 
 
 def summarise(name: str, latencies: List[float]) -> None:

@@ -38,7 +38,7 @@ import torch.nn as nn
 class RULPredictor(nn.Module):
     def __init__(self, input_size: int, hidden: int, num_layers: int):
         super().__init__()
-        self.lstm = nn.LSTM(input_size, hidden, num_layers, batch_first=True, dropout=0.0)
+        self.lstm = nn.LSTM(input_size, hidden, num_layers, batch_first=True, dropout=0.2)
         self.fc = nn.Linear(hidden, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
