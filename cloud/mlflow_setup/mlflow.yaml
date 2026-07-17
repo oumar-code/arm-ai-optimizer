@@ -1,0 +1,18 @@
+# MLflow server configuration for Rwanda cloud hub
+# Start with: mlflow server --host 0.0.0.0 --port 5000 \
+#   --backend-store-uri ******postgres/mlflow \
+#   --default-artifact-root s3://coocah-models/mlflow
+
+server:
+  host: 0.0.0.0
+  port: 5000
+  workers: 2
+
+artifact_store: s3://coocah-models/mlflow
+backend_store: ******postgres/mlflow
+
+# Model registry — registered models auto-deploy to edge nodes
+model_registry:
+  model_name: "coocah-pdm-arm64"
+  staging_alias: "edge-staging"
+  production_alias: "edge-production"

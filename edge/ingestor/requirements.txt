@@ -1,0 +1,3 @@
+influxdb-client==1.42.0
+paho-mqtt==1.6.1
+numpy==1.26.4
