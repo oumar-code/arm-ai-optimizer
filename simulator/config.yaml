@@ -1,0 +1,75 @@
+# Coo-Cah Edge Twin — Simulator Configuration
+# SMT Line, Sagamu Personal Electronics Factory
+
+mqtt:
+  broker: mosquitto
+  port: 1883
+  topic_prefix: "coocah/pe-sagamu"
+  publish_interval_s: 1          # publish every second
+
+machines:
+  - id: smt-pick-place-01
+    name: "SMT Pick & Place Line 1"
+    sensors:
+      vibration:
+        normal_mean: 0.5          # g RMS
+        normal_std: 0.05
+        fault_multiplier: 3.2     # fault ramps vibration up
+      temperature:
+        normal_mean: 45.0         # °C
+        normal_std: 1.5
+        fault_multiplier: 1.4
+      current:
+        normal_mean: 12.0         # A
+        normal_std: 0.8
+        fault_multiplier: 1.6
+    fault_injection:
+      enabled: true
+      # fault starts at t+300s, reaches critical at t+600s (simulates 48h scaled to 10min)
+      start_offset_s: 300
+      ramp_duration_s: 300
+
+  - id: smt-reflow-oven-02
+    name: "SMT Reflow Oven Line 2"
+    sensors:
+      vibration:
+        normal_mean: 0.3
+        normal_std: 0.03
+        fault_multiplier: 2.8
+      temperature:
+        normal_mean: 220.0        # reflow oven runs hot
+        normal_std: 3.0
+        fault_multiplier: 1.15
+      current:
+        normal_mean: 28.0
+        normal_std: 1.2
+        fault_multiplier: 1.3
+    fault_injection:
+      enabled: true
+      start_offset_s: 480
+      ramp_duration_s: 240
+
+energy:
+  # Solar panel array
+  solar:
+    peak_kw: 20.0                 # rated peak output
+    location_lat: 6.84            # Sagamu, Nigeria
+    location_lon: 3.65
+    panel_efficiency: 0.19
+    dust_derating: 0.05           # 5% derating for dust
+
+  # Battery Energy Storage System
+  bess:
+    capacity_kwh: 40.0
+    initial_soc: 0.65             # start at 65% SoC
+    max_charge_rate_kw: 10.0
+    max_discharge_rate_kw: 15.0
+    round_trip_efficiency: 0.92
+    min_soc: 0.15                 # never discharge below 15%
+    max_soc: 0.95
+
+  # Factory baseline load (always-on)
+  baseline_load_kw: 8.0
+
+  # SMT line batch load (when running)
+  batch_load_kw: 18.0

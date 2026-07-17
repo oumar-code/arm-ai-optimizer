@@ -1,0 +1,372 @@
+{
+  "__inputs": [],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0" },
+    { "type": "datasource", "id": "influxdb", "name": "InfluxDB", "version": "1.0.0" },
+    { "type": "panel", "id": "gauge", "name": "Gauge", "version": "" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "text", "name": "Text", "version": "" }
+  ],
+  "annotations": { "list": [] },
+  "description": "Coo-Cah Edge Twin — SMT Factory Ops Dashboard",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "🏭 Machine Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "Normal" }, "1": { "text": "ANOMALY" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Pick & Place — Anomaly",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"machine_health\" and r.machine_id == \"smt-pick-place-01\" and r._field == \"is_anomaly\") |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 12 },
+              { "color": "yellow", "value": 24 },
+              { "color": "green", "value": 48 }
+            ]
+          },
+          "unit": "h",
+          "min": 0,
+          "max": 48
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Pick & Place — RUL",
+      "type": "gauge",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"machine_health\" and r.machine_id == \"smt-pick-place-01\" and r._field == \"rul_hours\") |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "text": "Normal" }, "1": { "text": "ANOMALY" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Reflow Oven — Anomaly",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"machine_health\" and r.machine_id == \"smt-reflow-oven-02\" and r._field == \"is_anomaly\") |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 12 },
+              { "color": "yellow", "value": 24 },
+              { "color": "green", "value": 48 }
+            ]
+          },
+          "unit": "h",
+          "min": 0,
+          "max": 48
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Reflow Oven — RUL",
+      "type": "gauge",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"machine_health\" and r.machine_id == \"smt-reflow-oven-02\" and r._field == \"rul_hours\") |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 30 },
+              { "color": "red", "value": 45 }
+            ]
+          },
+          "unit": "ms",
+          "min": 0,
+          "max": 60
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 5,
+      "options": { "reduceOptions": { "calcs": ["mean"] }, "orientation": "auto", "showThresholdLabels": false, "showThresholdMarkers": true },
+      "title": "Inference Latency (Arm64)",
+      "type": "gauge",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"machine_health\" and r._field == \"inference_latency_ms\") |> mean()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "📡 Sensor Telemetry",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "none" },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 6 },
+      "id": 10,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "Vibration (g RMS) — All Machines",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -30m) |> filter(fn: (r) => r._measurement == \"machine_features\" and r._field == \"vibration_g_mean\") |> aggregateWindow(every: 30s, fn: mean)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "celsius" },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 6 },
+      "id": 11,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "Temperature (°C) — All Machines",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -30m) |> filter(fn: (r) => r._measurement == \"machine_features\" and r._field == \"temperature_c_mean\") |> aggregateWindow(every: 30s, fn: mean)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "amp" },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 6 },
+      "id": 12,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "Current (A) — All Machines",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -30m) |> filter(fn: (r) => r._measurement == \"machine_features\" and r._field == \"current_a_mean\") |> aggregateWindow(every: 30s, fn: mean)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "id": 102,
+      "title": "⚡ Energy — Solar & BESS",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.20 },
+              { "color": "yellow", "value": 0.40 },
+              { "color": "green", "value": 0.60 }
+            ]
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 14 },
+      "id": 20,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "showThresholdLabels": true, "showThresholdMarkers": true },
+      "title": "BESS State of Charge",
+      "type": "gauge",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"energy_state\" and r._field == \"bess_soc\") |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "⛔ WAIT" }, "1": { "color": "green", "text": "✅ GO" } }, "type": "value" }
+          ]
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 14 },
+      "id": 21,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value", "text": { "valueSize": 28 } },
+      "title": "Safe to Run Batch?",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"energy_advice\" and r._field == \"safe_to_run_batch\") |> last()",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "watt" },
+        "overrides": []
+      },
+      "gridPos": { "h": 7, "w": 16, "x": 8, "y": 14 },
+      "id": 22,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "Solar Output & BESS Power (kW)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -30m) |> filter(fn: (r) => r._measurement == \"energy_state\" and (r._field == \"solar_kw\" or r._field == \"bess_kw\")) |> aggregateWindow(every: 30s, fn: mean)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "influxdb", "uid": "factory-influx" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "percentunit", "min": 0, "max": 1 },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 19 },
+      "id": 23,
+      "options": { "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "BESS SoC History",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "influxdb", "uid": "factory-influx" },
+          "query": "from(bucket: \"factory\") |> range(start: -30m) |> filter(fn: (r) => r._measurement == \"energy_state\" and r._field == \"bess_soc\") |> aggregateWindow(every: 30s, fn: mean)",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["coocah", "edge", "arm64", "pdm", "energy"],
+  "templating": { "list": [] },
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "Africa/Lagos",
+  "title": "Coo-Cah Edge Twin — Factory Ops",
+  "uid": "coocah-edge-twin",
+  "version": 1
+}

@@ -1,0 +1,198 @@
+# ===========================================================================
+# Coo-Cah Edge Twin — One-Command Demo Stack
+# Usage: docker compose up
+# Grafana: http://localhost:3000 (admin / admin)
+# ===========================================================================
+
+version: "3.9"
+
+x-common-env: &common-env
+  MQTT_BROKER: mosquitto
+  MQTT_PORT: "1883"
+  TOPIC_PREFIX: "coocah/pe-sagamu"
+  INFLUX_URL: "http://influxdb:8086"
+  INFLUX_TOKEN: "edge-demo-token"
+  INFLUX_ORG: "coocah"
+  INFLUX_BUCKET: "factory"
+  CONFIG_PATH: "/app/config.yaml"
+
+services:
+
+  # ── Message Broker ─────────────────────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck", "-W", "3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Time-Series Database ───────────────────────────────────────────────────
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpass
+      DOCKER_INFLUXDB_INIT_ORG: coocah
+      DOCKER_INFLUXDB_INIT_BUCKET: factory
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: edge-demo-token
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── Telemetry Simulator ────────────────────────────────────────────────────
+  telemetry-sim:
+    build:
+      context: .
+      dockerfile: simulator/Dockerfile
+      target: telemetry
+    container_name: telemetry-sim
+    environment:
+      <<: *common-env
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Energy Simulator ───────────────────────────────────────────────────────
+  energy-sim:
+    build:
+      context: .
+      dockerfile: simulator/Dockerfile
+      target: energy
+    container_name: energy-sim
+    environment:
+      <<: *common-env
+      SIM_SPEEDUP: "60"
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Ingestor ───────────────────────────────────────────────────────────────
+  ingestor:
+    build:
+      context: .
+      dockerfile: edge/ingestor/Dockerfile
+    container_name: ingestor
+    environment:
+      <<: *common-env
+      WINDOW_SECONDS: "60"
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Model Training + Export (runs once at startup) ─────────────────────────
+  model-builder:
+    build:
+      context: .
+      dockerfile: edge/model/Dockerfile
+    container_name: model-builder
+    command: >
+      sh -c "python train.py --out-dir /app/model &&
+             python export_onnx.py --model-dir /app/model"
+    volumes:
+      - model-store:/app/model
+    restart: "no"
+
+  # ── PdM Inference Service ─────────────────────────────────────────────────
+  pdm-inference:
+    build:
+      context: .
+      dockerfile: edge/model/Dockerfile
+    container_name: pdm-inference
+    command: python inference.py
+    environment:
+      <<: *common-env
+      MODEL_DIR: "/app/model"
+      INFER_INTERVAL_S: "60"
+      WINDOW_LEN: "60"
+    volumes:
+      - model-store:/app/model:ro
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+      model-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # ── Energy Advisor ─────────────────────────────────────────────────────────
+  energy-advisor:
+    build:
+      context: .
+      dockerfile: edge/energy_advisor/Dockerfile
+    container_name: energy-advisor
+    environment:
+      <<: *common-env
+      ADVISE_INTERVAL_S: "60"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Cloud Sync Agent ───────────────────────────────────────────────────────
+  sync-agent:
+    build:
+      context: .
+      dockerfile: edge/sync_agent/Dockerfile
+    container_name: sync-agent
+    environment:
+      <<: *common-env
+      SITE_ID: "pe-sagamu"
+      SYNC_INTERVAL_S: "300"
+      DELTA_MINUTES: "6"
+      OUTBOX_PATH: "/data/sync_outbox.db"
+    volumes:
+      - sync-data:/data
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Grafana Dashboard ──────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana-oss:10.4.3
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/factory-ops.json
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./dashboards/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+      - ./dashboards/grafana/dashboard-provider.yaml:/etc/grafana/provisioning/dashboards/dashboard-provider.yaml:ro
+      - ./dashboards/grafana/factory-ops.json:/var/lib/grafana/dashboards/factory-ops.json:ro
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  influxdb-data:
+  grafana-data:
+  model-store:
+  sync-data:

@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB-Factory
+    uid: factory-influx
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: Flux
+      organization: coocah
+      defaultBucket: factory
+      tlsSkipVerify: true
+    secureJsonData:
+      token: edge-demo-token
+    isDefault: true
+    editable: false
